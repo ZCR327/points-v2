@@ -1,0 +1,109 @@
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+wheels/
+share/python-wheels/
+*.egg-info/
+*.egg
+MANIFEST
+
+# ===== Virtual environments =====
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# ===== Test / coverage =====
+.pytest_cache/
+.coverage
+.coverage.*
+.cache/
+htmlcov/
+coverage.xml
+*.cover
+.tox/
+.nox/
+
+# ===== Type / lint =====
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+.ruff_cache/
+
+# ===== Distribution / packaging =====
+dist/
+build/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ===== IDEs =====
+# PyCharm / IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# VSCode
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json.example
+
+# ===== OS =====
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ===== Project-specific =====
+# Runtime data and logs (created by the app)
+data/
+logs/
+*.log
+*.log.*
+*.db
+*.sqlite
+*.sqlite3
+
+# Backup files
+backups/
+*.bak
+*.swp
+*.swo
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+secrets.yaml
+*.pem
+*.key
+
+# Build artifacts (PyInstaller)
+*.spec.bak
+
+# Build artifacts
+src/*.egg-info/
+*.egg-info/

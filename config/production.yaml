@@ -1,0 +1,12 @@
+# production.yaml — 生产环境覆盖
+
+app:
+  env: production
+  debug: false
+
+logging:
+  level: WARNING
+  console: false
+
+api:
+  cors_origins: []

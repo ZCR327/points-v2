@@ -1,0 +1,12 @@
+# development.yaml — 开发环境覆盖
+
+app:
+  env: development
+  debug: true
+
+logging:
+  level: DEBUG
+  console: true
+
+api:
+  cors_origins: ["*"]
