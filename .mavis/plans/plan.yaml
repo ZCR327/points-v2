@@ -1,0 +1,401 @@
+﻿version: 1
+plan:
+  name: '积分系统 v2 — PySide6 + FastAPI 企业框架实施'
+  max_concurrency: 4
+  max_consecutive_failures: 2
+  max_cycles: 12
+  verifier_config:
+    default_verifiers: [verifier]
+    audit_sample_rate: 0.0
+
+tasks:
+  # ==========================================================================
+  # TRACK 0：项目骨架（所有 track 的前置依赖）
+  # ==========================================================================
+  - id: foundation
+    title: '项目骨架：pyproject + .gitignore + 入口 + 启动冒烟'
+    prompt: |
+      在项目根 `C:\Users\xiaomi\Desktop\智能回收社\积分系统-v2-pyside6` 落地基础工程文件。
+
+      **必读**：`docs/ARCHITECTURE.md`（这是所有 worker 必读的共享契约）。
+
+      **交付物**：
+      1. `pyproject.toml` — 用 [PEP 621] 格式，依赖：PySide6>=6.6, fastapi>=0.110, uvicorn>=0.27, pydantic>=2.5, loguru>=0.7, PyYAML>=6.0, bcrypt>=4.1, python-multipart>=0.0.9；dev 依赖：pytest>=8.0, pytest-cov>=4.1, ruff>=0.1, mypy>=1.7, httpx>=0.27, PyInstaller>=6.0
+      2. `.gitignore` — Python 标准（__pycache__/、*.pyc、.venv/、.pytest_cache/、.mypy_cache/、dist/、build/、*.egg-info/、.ruff_cache/）+ PyCharm（.idea/）+ VSCode（.vscode/）+ data/、logs/、*.log、*.db
+      3. `README.md` — 项目名、徽章占位、一句话简介、状态徽章（"🚧 重构中"）、"快速开始"占位
+      4. `config/default.yaml` — 照 ARCHITECTURE.md 第 10 节落地
+      5. `config/development.yaml` — debug: true, log level DEBUG
+      6. `config/production.yaml` — debug: false, log level WARNING
+      7. `src/points_v2/__init__.py` — `__version__ = "0.1.0"`
+      8. `src/points_v2/__main__.py` — `python -m points_v2` 入口，调用 `core.config.setup()` 然后 `ui.app.run()`
+      9. `src/points_v2/core/__init__.py` — 空
+      10. `src/points_v2/core/paths.py` — 路径常量 + 初始化（首次运行时建 data/、logs/ 子目录）
+      11. `tests/__init__.py` — 空
+      12. `tests/test_smoke.py` — 一个最小测试 `def test_version(): assert __version__` + `def test_imports(): import points_v2`
+      13. `.github/workflows/ci.yml` — 照 ARCHITECTURE.md 第 13 节
+
+      **验收**：
+      - `pip install -e ".[dev]"` 成功（在 Windows + Python 3.10+）
+      - `pytest tests/test_smoke.py -v` 2 个测试都过
+      - `python -c "import points_v2; print(points_v2.__version__)"` 输出 `0.1.0`
+      - `python -c "from points_v2.core.paths import setup; setup()"` 不报错，建出 data/ logs/ 目录
+      - git add + git commit 一次性提交（commit message `chore: project foundation (pyproject, gitignore, configs, smoke test)`）
+
+      **报告**：commit hash、文件清单、pytest 输出。
+    assigned_to: coder
+    verified_by: verifier
+    verify_prompt: |
+      **不要重读 diff**。**自己跑命令**：
+
+      1. `cd "C:\Users\xiaomi\Desktop\智能回收社\积分系统-v2-pyside6"`
+      2. `pip install -e ".[dev]"` — 必须成功
+      3. `pytest tests/test_smoke.py -v` — 必须 2/2 通过
+      4. `python -c "import points_v2; print(points_v2.__version__)"` — 必须输出 0.1.0
+      5. `python -c "from points_v2.core.paths import setup; setup(); import os; assert os.path.isdir('data'); assert os.path.isdir('logs')"` — 必须通过
+      6. 打开 `pyproject.toml` 检查：依赖列表是否完整（与 prompt 第 1 项一致）
+      7. 打开 `.gitignore` 检查：是否包含 __pycache__、.venv、data/、logs/、.idea/、.vscode/
+      8. 打开 `config/default.yaml` 检查：所有必填字段（app.name、app.version、paths.data_dir、logging.level、api.host/port 等）都在
+      9. 打开 `.github/workflows/ci.yml` 检查：是否有 lint + test 两个 job，matrix python-version 至少 3.10/3.11/3.12
+
+      **FAIL 条件**（任一即 FAIL）：
+      - pytest 不通过
+      - import 报错
+      - pyproject.toml 缺关键依赖
+      - .gitignore 缺 data/ 或 logs/
+      - CI 配置没 matrix 或缺 lint/test
+
+      报告 PASS/FAIL + 各项检查结果。
+    timeout_ms: 1500000
+
+  # ==========================================================================
+  # TRACK 1：core + domain + data（基础设施 + 数据层）
+  # ==========================================================================
+  - id: core-domain-data
+    title: 'core + domain + data 三层 + 单元测试'
+    prompt: |
+      实施 ARCHITECTURE.md 第 5-6 节定义的所有文件。
+
+      **必读**：`docs/ARCHITECTURE.md` 第 4-6 节 + 第 5 节的数据模型 + 第 6 节的 Repository 模式。
+
+      **交付物**（22 个文件）：
+
+      **core/** (5 个)：
+      - `config.py` — 加载 default.yaml → env-specific.yaml → env vars，导出 `get_config() / reload_config()`
+      - `logging.py` — loguru 配置（INFO 级别、文件轮转 10MB、保留 30 天、控制台 + 文件双输出、分类日志 system/login/points/users/sensitive）
+      - `exceptions.py` — 照 ARCHITECTURE.md 4.2 节列出的异常类
+      - `container.py` — 轻量 DI：`register(name, factory)` / `resolve(name)` / `clear()`，单例模式
+      - `__init__.py` — 暴露 `setup()` 函数一次性配置 config + logging + paths
+
+      **domain/** (5 个)：
+      - `enums.py` — UserRole / OperationType / NotificationLevel / AuditAction（用 str enum）
+      - `user.py` — User / UserCreate / UserUpdate（Pydantic BaseModel，字段见 ARCHITECTURE.md 5.1）
+      - `points.py` — PointsRecord / PointsAdjustment / UserRanking
+      - `audit.py` — AuditLog / AuditFilter
+      - `notification.py` — Notification
+      - `__init__.py` — re-export 全部 model
+
+      **data/** (5 个)：
+      - `base.py` — `JsonRepository[T]` 泛型基类，方法：load/save/find/find_one/insert/update/delete，原子写（tmp file + rename），threading.RLock
+      - `user_repo.py` — UserRepository 继承 JsonRepository[User]
+      - `points_repo.py` — PointsRepository 继承 JsonRepository[PointsRecord]
+      - `audit_repo.py` — AuditRepository 继承 JsonRepository[AuditLog]
+      - `notification_repo.py` — NotificationRepository
+      - `__init__.py` — re-export
+
+      **tests/** (7 个测试文件)：
+      - `core/test_config.py` — 5 个测试：default 配置加载、env 覆盖、reload、缺文件报错、类型转换
+      - `core/test_logging.py` — 3 个测试：log 函数调用、文件创建、轮转
+      - `core/test_exceptions.py` — 3 个测试：异常继承、错误消息、捕获
+      - `core/test_container.py` — 4 个测试：register/resolve、单例、override、clear
+      - `domain/test_user.py` — 5 个测试：必填字段、字段验证、默认值、role enum、update 字段
+      - `domain/test_points.py` — 4 个测试：正负 amount、enum、balance_after 校验
+      - `data/test_user_repo.py` — 6 个测试：CRUD、find by username、原子写、reload from disk、empty data、并发读
+
+      **验收**：
+      - `pytest tests/core tests/domain tests/data -v` 全过
+      - 覆盖率：`pytest --cov=points_v2.core --cov=points_v2.domain --cov=points_v2.data --cov-report=term-missing` 三层都 ≥ 80%
+      - `ruff check src/points_v2/core src/points_v2/domain src/points_v2/data` 0 错
+      - `mypy src/points_v2/core src/points_v2/domain src/points_v2/data` 0 错
+      - git add + commit (message: `feat(core,domain,data): foundation layers with tests`)
+
+      **报告**：commit hash、pytest 总数（>= 30）、覆盖率报告。
+    assigned_to: coder
+    verified_by: verifier
+    depends_on: [foundation]
+    verify_prompt: |
+      **不要重读 diff**。**自己跑命令**：
+
+      1. `cd "C:\Users\xiaomi\Desktop\智能回收社\积分系统-v2-pyside6"`
+      2. `pip install -e ".[dev]"` (如已装跳过)
+      3. `pytest tests/core tests/domain tests/data -v` — 必须全过，记录测试数（期望 ≥ 30）
+      4. `pytest --cov=points_v2.core --cov=points_v2.domain --cov=points_v2.data --cov-report=term-missing tests/core tests/domain tests/data` — 记录三层各自的覆盖率（期望 ≥ 80%）
+      5. `ruff check src/points_v2/core src/points_v2/domain src/points_v2/data tests/core tests/domain tests/data` — 0 错
+      6. `mypy src/points_v2/core src/points_v2/domain src/points_v2/data` — 0 错
+      7. 写个临时脚本验证：建 1 个 user，存盘，杀进程，再启动，user 还在（持久化）
+      8. 写个临时脚本验证：container 解析 user_repo，返回的不是 None
+
+      **FAIL 条件**（任一即 FAIL）：
+      - pytest 失败 / 跳过
+      - 任何一层覆盖率 < 70%
+      - ruff 或 mypy 报错
+      - 持久化测试失败（重启后数据丢）
+      - 缺任何文件（与 prompt 列表逐个对照）
+
+      报告 PASS/FAIL + 测试数 + 三层覆盖率 + ruff/mypy 结果。
+    timeout_ms: 1800000
+
+  # ==========================================================================
+  # TRACK 2：services + api（业务服务 + HTTP API + 集成测试）
+  # ==========================================================================
+  - id: services-api
+    title: 'services + api + 集成测试'
+    prompt: |
+      实施 ARCHITECTURE.md 第 7-8 节。
+
+      **必读**：`docs/ARCHITECTURE.md` 第 4-8 节。
+
+      **交付物**：
+
+      **utils/** (3 个)：
+      - `hashing.py` — bcrypt 包装：hash_password(plain) / verify_password(plain, hashed)
+      - `time.py` — utcnow() / format_datetime() / parse_datetime() — 统一时区 UTC
+      - `validators.py` — validate_username / validate_password_strength / validate_amount（正整数）
+
+      **services/** (5 个)：
+      - `auth_service.py` — login/logout/verify_token/change_password，token 简单用 secrets.token_urlsafe(32) 存在 data/sessions.json 里
+      - `user_service.py` — create/get_by_id/get_by_username/list/update/delete/lock/unlock
+      - `points_service.py` — add/deduct/transfer/get_history/get_ranking/get_stats，扣减时校验余额、失败抛 InsufficientPointsError
+      - `audit_service.py` — log/query/get_user_actions
+      - `notification_service.py` — create/list_for_user/mark_read/broadcast
+      - `__init__.py` — re-export
+
+      **api/** (8 个)：
+      - `app.py` — FastAPI app 工厂：create_app()，注册 routers、exception handlers（PointsV2Error → JSON）、CORS
+      - `deps.py` — 依赖：get_current_user（从 Authorization header 解析 token）、require_role（admin 检查）
+      - `schemas.py` — Pydantic request/response schema（LoginRequest/Response、UserCreate/Update/Response、PointsAddRequest 等）
+      - `routers/auth.py` — POST /login, POST /logout, GET /me
+      - `routers/users.py` — GET/POST/GET-one/PUT/DELETE /users
+      - `routers/points.py` — GET /users/{id}/points, GET /users/{id}/points/history, POST /points/add, POST /points/deduct, POST /points/transfer
+      - `routers/admin.py` — GET /rankings, GET /stats, GET /audit, GET/POST /notifications
+      - `routers/__init__.py` — re-export
+
+      **__main__.py** 扩展 — 增加 `--api` 模式：`python -m points_v2 --api` 启动 uvicorn
+      **`scripts/run_dev.py`** — 同时启动 API + 打开 GUI 入口的占位
+
+      **tests/** (3 个)：
+      - `services/test_auth_service.py` — 6 个测试：login success/wrong password/锁定、token verify/expired、change password
+      - `services/test_points_service.py` — 8 个测试：add 成功/deduct 余额不足抛错/transfer 双向原子/history/ranking/stats/admin 操作审计
+      - `api/test_endpoints.py` — 10 个测试（用 httpx + FastAPI TestClient）：每个端点 1 happy + 1 auth fail / 1 业务 error
+
+      **验收**：
+      - `pytest tests/services tests/api -v` 全过（≥ 24 测试）
+      - `pytest --cov=points_v2.services --cov=points_v2.api --cov-report=term-missing` ≥ 75%
+      - 启动 API：`python -m points_v2 --api`（用 `&` 后台），`curl http://127.0.0.1:8765/health` 返回 200，然后 kill 进程
+      - `ruff check src/points_v2/services src/points_v2/api src/points_v2/utils` 0 错
+      - git add + commit (message: `feat(services,api): business services + FastAPI with tests`)
+
+      **报告**：commit hash、测试数、覆盖率、API 启动是否成功、curl /health 结果。
+    assigned_to: coder
+    verified_by: verifier
+    depends_on: [core-domain-data]
+    verify_prompt: |
+      **不要重读 diff**。**自己跑命令**：
+
+      1. `cd "C:\Users\xiaomi\Desktop\智能回收社\积分系统-v2-pyside6"`
+      2. `pytest tests/services tests/api -v` — 全过，记录测试数（期望 ≥ 24）
+      3. `pytest --cov=points_v2.services --cov=points_v2.api --cov-report=term-missing` — 期望 services ≥ 80%, api ≥ 70%
+      4. **真启动 API**：
+         ```
+         python -m points_v2 --api &
+         $pid = $!
+         Start-Sleep -Seconds 3
+         try { Invoke-WebRequest http://127.0.0.1:8765/health -UseBasicParsing | Should -Be 200 } finally { Stop-Process -Id $pid -Force }
+         ```
+         或 bash: `python -m points_v2 --api &` / `curl -f http://127.0.0.1:8765/health` / `kill %1`
+      5. 写脚本验证业务流：建 admin → login 拿 token → 创建一个 user → 加 100 积分 → 查余额是 100 → 转账给另一个 user → 两个 user 余额正确 → 查 audit log
+      6. 验证 deduct 超过余额抛 InsufficientPointsError
+      7. `ruff check src/points_v2/services src/points_v2/api src/points_v2/utils tests/services tests/api` 0 错
+      8. 打开 `docs/api.md` 或访问 `http://127.0.0.1:8765/docs` 看 OpenAPI UI
+
+      **FAIL 条件**：
+      - pytest 失败
+      - API 启动失败 / curl /health 失败
+      - 业务流脚本中途报错
+      - 覆盖率低于 70% (services 或 api 任一)
+      - ruff 报错
+      - 缺核心文件（service / api router / schemas）
+
+      报告 PASS/FAIL + 测试数 + 覆盖率 + API 启动结果 + 业务流脚本结果。
+    timeout_ms: 1800000
+
+  # ==========================================================================
+  # TRACK 3：ui + plugins + 文档 + 打包（桌面 UI + 插件 + 文档）
+  # ==========================================================================
+  - id: ui-plugins-docs
+    title: 'ui (PySide6) + plugins + 文档 + 打包配置'
+    prompt: |
+      实施 ARCHITECTURE.md 第 9 节 (ui) + 插件层 + 文档。
+
+      **必读**：`docs/ARCHITECTURE.md` 第 4 节（依赖方向）+ 第 9 节（UI 设计）。
+
+      **交付物**：
+
+      **ui/** (10 个)：
+      - `app.py` — QApplication 启动：解析命令行 --no-gui / --api / 默认 GUI、加载样式、显示主窗口
+      - `main_window.py` — QMainWindow：顶部栏（用户、退出）、侧边栏（5-6 个 tab 按钮）、QStackedWidget 主区、状态栏
+      - `views/login_view.py` — 用户名/密码表单、提交后调 auth_service.login()、成功后 emit signal 切主窗口
+      - `views/dashboard_view.py` — 4 个统计卡片（用户数、总积分、今日操作、今日登录）+ 趋势图（matplotlib embed）+ Top 10 排行榜
+      - `views/points_view.py` — 积分流水表格（QTableView + 自定义 model）+ 加减积分按钮（弹窗 + form）
+      - `views/user_view.py` — 用户列表 + 详情面板 + 创建/编辑/删除（admin only）
+      - `views/admin_view.py` — 审计日志表、通知广播 form、系统设置入口
+      - `views/__init__.py`
+      - `widgets/data_table.py` — 通用 QTableView + QAbstractTableModel 基类，子类传入 schema
+      - `widgets/chart_widget.py` — matplotlib FigureCanvasQTAgg 嵌入 Qt
+      - `widgets/error_dialog.py` — 统一错误弹窗（接受 Exception → QMessageBox with stack trace + 中文 title）
+      - `workers.py` — ServiceWorker(QRunnable) 包装 service 调用、emit finished/error signal
+      - `__init__.py`
+
+      **plugins/** (3 个)：
+      - `base.py` — Plugin 抽象基类：name / version / activate(context) / deactivate()
+      - `loader.py` — 用 importlib.metadata entry_points 加载 `points_v2.plugins` 组
+      - `builtin/__init__.py`
+      - `builtin/example.py` — 一个 example plugin（注册一个菜单项 "About this plugin" 弹窗）
+
+      **migrations/** (1 个)：
+      - `from_v5_9.py` — CLI 入口 `python -m points_v2.migrations.from_v5_9 --source <v5_data_dir> --target <v2_data_dir> [--dry-run]`
+        - 读 v5.9 的 marks.json / users.json / audit_log.json / points_history.json
+        - 字段映射（v5.9 的 marks 字段是 username，v2 用 user_id；先建 user mapping）
+        - 写到 v2 的 data/ JSON 文件
+        - 输出迁移报告：处理了多少条、跳过了多少、错误多少
+        - 幂等（用 ID 去重）
+
+      **文档** (3 个)：
+      - `README.md` — 重写：项目介绍、特性、截图占位、状态徽章、快速开始、目录结构、贡献链接
+      - `DEVELOPING.md` — 开发指南：环境搭建、跑测试、跑 lint、添加新功能流程、调试技巧
+      - `CHANGELOG.md` — 首版 0.1.0 记录
+      - `docs/screenshots/.gitkeep` — 占位目录
+
+      **pyproject.toml** 扩展：
+      - 入口点：`[project.entry-points."points_v2.plugins"]` 注册 example
+      - `[project.scripts]` 配 `points-v2 = "points_v2.__main__:main"` / `points-v2-api = "points_v2.__main__:main_api"`
+      - `[project.optional-dependencies]` 配 desktop/api 分组
+
+      **scripts/** (2 个)：
+      - `seed_data.py` — 造测试数据：1 super_admin / 1 admin / 5 users / 20 积分操作
+      - `main.spec` + `api.spec` — PyInstaller spec 文件
+
+      **tests/** (1 个)：
+      - `ui/test_smoke.py` — 测试 `from points_v2.ui.app import create_qt_app`（mock 模式，不真显示窗口）
+
+      **验收**：
+      - `pytest tests/ui -v` 全过（≥ 1 测试）
+      - **无显示器环境下**：`QT_QPA_PLATFORM=offscreen python -c "from points_v2.ui.app import create_qt_app; app = create_qt_app(); print('OK')"` 输出 OK
+      - `python -m points_v2` 不报错（即使没显示器也至少 import 通过、错误信息清晰）
+      - 跑 `python -m points_v2.migrations.from_v5_9 --dry-run --source <v5.9_数据目录> --target <tmp>` 看到 dry-run 报告
+      - `ruff check src/points_v2/ui src/points_v2/plugins src/points_v2/migrations` 0 错
+      - `mypy src/points_v2/ui` 0 错（PySide6 类型忽略用 type: ignore 标记）
+      - git add + commit (message: `feat(ui,plugins): PySide6 desktop UI + plugin system + docs`)
+
+      **报告**：commit hash、UI smoke 测试结果、迁移 dry-run 输出。
+    assigned_to: coder
+    verified_by: verifier
+    depends_on: [core-domain-data, services-api]
+    verify_prompt: |
+      **不要重读 diff**。**自己跑命令**：
+
+      1. `cd "C:\Users\xiaomi\Desktop\智能回收社\积分系统-v2-pyside6"`
+      2. `pytest tests/ui -v` — 全过
+      3. **Headless 启动测试**：
+         ```
+         $env:QT_QPA_PLATFORM = "offscreen"
+         python -c "from points_v2.ui.app import create_qt_app; from points_v2.ui.main_window import MainWindow; app = create_qt_app(); w = MainWindow(); w.show(); app.processEvents(); print('UI started OK')"
+         ```
+         必须输出 `UI started OK`
+      4. **迁移脚本 dry-run**：
+         ```
+         $v5 = "C:\Users\xiaomi\.minimax\sessions\mvs_2265ed1afca148e0ae268eb085f4d51f\workspace\extracted_project\积分系统（最终改版）\data"
+         $tmp = Join-Path $env:TEMP "v2_dryrun_test"
+         python -m points_v2.migrations.from_v5_9 --source $v5 --target $tmp --dry-run
+         ```
+         必须输出报告（处理/跳过/错误条数）
+      5. **插件加载测试**：
+         ```
+         python -c "from points_v2.plugins.loader import load_plugins; plugins = load_plugins(); print(f'Loaded {len(plugins)} plugins'); print([p.name for p in plugins])"
+         ```
+         必须输出至少 1 个插件（example）
+      6. `ruff check src/points_v2/ui src/points_v2/plugins src/points_v2/migrations` 0 错
+      7. 打开 `README.md` 检查：是否有"快速开始" + 目录结构 + 入口命令
+      8. 打开 `DEVELOPING.md` 检查：是否有"添加新功能"流程
+
+      **FAIL 条件**：
+      - UI smoke 启动失败
+      - 迁移脚本 dry-run 报错
+      - 插件加载失败
+      - 缺任何 UI 视图（login/dashboard/points/user/admin）
+      - 缺 README / DEVELOPING
+      - ruff 报错
+
+      报告 PASS/FAIL + UI 启动结果 + 迁移 dry-run 报告 + 插件列表。
+    timeout_ms: 1800000
+
+  # ==========================================================================
+  # GATE：最终集成验证
+  # ==========================================================================
+  - id: final-integration
+    title: '最终集成：全栈联动 + 端到端业务流验证 + 最终报告'
+    role: verify-as-task
+    prompt: |
+      跑完整集成验证脚本 + 出最终报告。
+
+      **必读**：docs/ARCHITECTURE.md 全篇（这是验收基准）。
+
+      **任务**：
+
+      1. **装依赖**：`pip install -e ".[dev]"`
+      2. **跑全部测试**：`pytest --cov=points_v2 --cov-report=term-missing tests/`
+         - 期望：所有测试 PASS，总覆盖率 ≥ 60%
+         - 记录各层覆盖率
+      3. **跑 lint + type check**：
+         - `ruff check src tests` — 0 错
+         - `mypy src/points_v2` — 0 错
+      4. **端到端业务流（用真服务，不用 mock）**：
+         ```
+         # 在临时 data 目录下：
+         # a) 创建 1 super_admin (username=admin, password=admin123) + 1 user (username=alice)
+         # b) admin 登录 API 拿 token
+         # c) admin 用 token 创建 user bob
+         # d) admin 给 alice 加 100 积分
+         # e) alice 给 bob 转账 30 积分
+         # f) 验证 alice 余额=70, bob 余额=30
+         # g) alice 试图给 bob 转账 1000（余额不足）— 必须失败、抛 InsufficientPointsError
+         # h) 查 audit log — 应有 4 条记录
+         # i) 查 notifications — bob 收到一条"收到转账 30"
+         ```
+         写一个 `scripts/e2e_smoke.py` 跑这个流程，输出 PASS/FAIL。
+      5. **PyInstaller 试打包**（如时间允许）：
+         - `pip install pyinstaller`
+         - `pyinstaller --onefile --name points-v2 src/points_v2/__main__.py`
+         - 跑 `dist/points-v2.exe --version` 看能否起来
+         - 如失败，记录错误（PySide6 在 PyInstaller 上是已知难点，可能要 spec 配置）
+      6. **最终报告**：写 `reports/final_integration_report.md`：
+         - 测试统计（总数、通过/失败、覆盖率各层）
+         - 端到端业务流程结果
+         - PyInstaller 结果（如试了）
+         - **遗留问题清单**（已知未做的功能、已知不完美的地方）
+         - **运行指南**（5 步走：从克隆到启动 GUI + API）
+
+      **报告**：报告文件路径、测试数、覆盖率、e2e 流程结果、PyInstaller 结果。
+    assigned_to: verifier
+    depends_on: [core-domain-data, services-api, ui-plugins-docs]
+    verified_by: verifier
+    verify_prompt: |
+      重读 `reports/final_integration_report.md` 是否符合以下要求：
+
+      1. 报告存在
+      2. 报告包含：测试统计、e2e 流程结果、PyInstaller 结果、运行指南
+      3. 报告诚实记录遗留问题（不掩盖）
+      4. 报告语言是中文（与用户语言一致）
+
+      **不要重新跑测试**（已包含在 task 里），只看报告质量。
+      PASS/FAIL。
+    timeout_ms: 1500000
