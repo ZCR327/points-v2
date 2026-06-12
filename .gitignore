@@ -78,9 +78,9 @@ $RECYCLE.BIN/
 .LSOverride
 
 # ===== Project-specific =====
-# Runtime data and logs (created by the app)
-data/
-logs/
+# Runtime data and logs (created by the app) — only at project root
+/data/
+/logs/
 *.log
 *.log.*
 *.db

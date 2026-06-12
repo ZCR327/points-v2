@@ -15,7 +15,6 @@ def test_version() -> None:
 
 def test_imports() -> None:
     """顶层包可导入，且 ``core.paths`` 模块可访问。"""
-    import points_v2
     from points_v2.core import paths
 
     # paths 模块暴露的关键常量
