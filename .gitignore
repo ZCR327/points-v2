@@ -107,3 +107,13 @@ secrets.yaml
 # Build artifacts
 src/*.egg-info/
 *.egg-info/
+
+# Migration test / tmp dirs
+tmp_dryrun*/
+tmp_*/
+migration_report.json
+
+# Install logs
+_install_stdout.log
+_install_stderr.log
+_api_*.log

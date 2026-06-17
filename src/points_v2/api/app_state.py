@@ -7,11 +7,13 @@
 - 测试可以 ``app.dependency_overrides[get_auth_service] = lambda: FakeAuthService()``
   或直接 ``container.register(...)`` 替换
 - 单进程内：所有 service 共享同一组 repo（同一份内存数据）
+- 附带 :class:`QThreadPool`，给 UI 层做后台任务用；API 层不需要
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from points_v2.data import (
     AuditRepository,
@@ -27,10 +29,17 @@ from points_v2.services import (
     UserService,
 )
 
+if TYPE_CHECKING:
+    from PySide6.QtCore import QThreadPool
 
-@dataclass(frozen=True)
+
+@dataclass
 class ServiceBundle:
-    """一组默认构造的 service。"""
+    """一组默认构造的 service。
+
+    注：``frozen=False`` 因为 :class:`QThreadPool` 在某些 Qt 版本下不能 pickle，
+    且我们需要在测试中能替换。
+    """
 
     user_repo: UserRepository
     points_repo: PointsRepository
@@ -41,6 +50,7 @@ class ServiceBundle:
     points_service: PointsService
     audit_service: AuditService
     notification_service: NotificationService
+    threadpool: "QThreadPool | None" = None
 
 
 def build_default_services() -> ServiceBundle:
@@ -59,6 +69,15 @@ def build_default_services() -> ServiceBundle:
         user_repo=user_repo,
     )
 
+    # threadpool 延迟到 UI 启动时填充（避免 api/CLI 路径拖入 PySide6）
+    threadpool = None
+    try:
+        from PySide6.QtCore import QThreadPool
+
+        threadpool = QThreadPool.globalInstance()
+    except ImportError:  # noqa: BLE001 - PySide6 不在也无所谓
+        threadpool = None
+
     return ServiceBundle(
         user_repo=user_repo,
         points_repo=points_repo,
@@ -69,6 +88,7 @@ def build_default_services() -> ServiceBundle:
         points_service=points_service,
         audit_service=audit_service,
         notification_service=notification_service,
+        threadpool=threadpool,
     )
 
 
