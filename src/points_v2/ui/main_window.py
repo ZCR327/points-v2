@@ -47,12 +47,24 @@ __all__ = ["MainWindow"]
 class MainWindow(QMainWindow):
     """主窗口（ARCHITECTURE §9.1）。"""
 
-    def __init__(self, services: Any, *, parent: QWidget | None = None) -> None:
+    def __init__(self, services: Any | None = None, *, parent: QWidget | None = None) -> None:
+        """构造主窗口。
+
+        :param services: 已构造的 :class:`ServiceBundle`；传 ``None`` 时本构造器会
+            延迟调用 :func:`build_default_services`，便于 smoke test / 单文件
+            ``python -c "from points_v2.ui.main_window import MainWindow; MainWindow()"``
+            这种用法。
+        :param parent: 父 QWidget（可选）。
+        """
         super().__init__(parent)
+        if services is None:
+            from points_v2.api.app_state import build_default_services
+
+            services = build_default_services()
         self._services = services
         self._log = get_logger("system")
         self._current_user: User | None = None
-        self._threadpool = services.threadpool  # type: ignore[attr-defined]
+        self._threadpool = getattr(services, 'threadpool', None)
 
         self.setWindowTitle("智能回收社 积分系统 v2")
         self.resize(1200, 800)
