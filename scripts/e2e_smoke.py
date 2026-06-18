@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python
+#!/usr/bin/env python
 """End-to-end smoke test for points_v2.
 
 设计要点
