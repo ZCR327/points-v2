@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query
 
 from points_v2.api.deps import (
     CurrentUser,
     get_points_service,
     get_user_service,
-    require_role,
 )
 from points_v2.api.schemas import (
     PointsAddRequest,
@@ -17,7 +16,6 @@ from points_v2.api.schemas import (
     PointsHistoryResponse,
     PointsRecordResponse,
     PointsTransferRequest,
-    SuccessResponse,
 )
 from points_v2.domain.enums import UserRole
 from points_v2.domain.points import PointsRecord
@@ -83,7 +81,8 @@ async def add_points(
 ) -> PointsRecordResponse:
     """加积分（**admin / operator**）。"""
     if current_user.role not in (UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.OPERATOR):
-        from fastapi import HTTPException, status as _st
+        from fastapi import HTTPException
+        from fastapi import status as _st
 
         raise HTTPException(
             status_code=_st.HTTP_403_FORBIDDEN,
@@ -106,7 +105,8 @@ async def deduct_points(
 ) -> PointsRecordResponse:
     """扣积分（**admin / operator**）。"""
     if current_user.role not in (UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.OPERATOR):
-        from fastapi import HTTPException, status as _st
+        from fastapi import HTTPException
+        from fastapi import status as _st
 
         raise HTTPException(
             status_code=_st.HTTP_403_FORBIDDEN,

@@ -50,7 +50,7 @@ class ServiceBundle:
     points_service: PointsService
     audit_service: AuditService
     notification_service: NotificationService
-    threadpool: "QThreadPool | None" = None
+    threadpool: QThreadPool | None = None
 
 
 def build_default_services() -> ServiceBundle:

@@ -34,7 +34,7 @@ from points_v2.core.exceptions import (
     UserNotFoundError,
 )
 from points_v2.core.logging import get_logger
-from points_v2.domain.enums import AuditAction, UserRole
+from points_v2.domain.enums import UserRole
 from points_v2.domain.user import User
 from points_v2.utils.hashing import hash_password, verify_password
 from points_v2.utils.time import utcnow

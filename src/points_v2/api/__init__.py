@@ -5,11 +5,15 @@ from __future__ import annotations
 from points_v2.api.app import create_app, main
 from points_v2.api.app_state import ServiceBundle, build_default_services
 from points_v2.api.schemas import (
+    AuditListResponse,
+    AuditLogResponse,
+    ChangePasswordRequest,
+    ErrorResponse,
     LoginRequest,
     LoginResponse,
-    UserCreateRequest,
-    UserResponse,
-    UserUpdateRequest,
+    NotificationCreateRequest,
+    NotificationListResponse,
+    NotificationResponse,
     PointsAddRequest,
     PointsBalanceResponse,
     PointsHistoryResponse,
@@ -17,15 +21,11 @@ from points_v2.api.schemas import (
     PointsTransferRequest,
     RankingItemResponse,
     RankingResponse,
-    SystemStatsResponse,
-    AuditListResponse,
-    AuditLogResponse,
-    NotificationCreateRequest,
-    NotificationListResponse,
-    NotificationResponse,
-    ChangePasswordRequest,
     SuccessResponse,
-    ErrorResponse,
+    SystemStatsResponse,
+    UserCreateRequest,
+    UserResponse,
+    UserUpdateRequest,
 )
 
 __all__ = [

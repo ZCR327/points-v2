@@ -120,7 +120,7 @@ def get_current_user(
 CurrentUser = Annotated[User, Depends(get_current_user)]
 
 
-def require_role(*allowed: UserRole) -> "type[User]":
+def require_role(*allowed: UserRole) -> type[User]:
     """返回一个 ``Annotated[User, Depends(...)]`` 类型别名。
 
     用法::

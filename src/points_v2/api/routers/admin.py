@@ -19,8 +19,8 @@ from points_v2.api.schemas import (
     NotificationCreateRequest,
     NotificationListResponse,
     NotificationResponse,
-    RankingResponse,
     RankingItemResponse,
+    RankingResponse,
     SuccessResponse,
     SystemStatsResponse,
 )

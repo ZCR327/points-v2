@@ -18,6 +18,7 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
 import sys
 from pathlib import Path
 
@@ -61,10 +62,8 @@ def run_api_only(args: argparse.Namespace) -> int:
     from points_v2.core import config, paths
 
     paths.setup()
-    try:
+    with contextlib.suppress(Exception):
         config.setup()
-    except Exception:  # noqa: BLE001
-        pass
 
     app = create_app()
 

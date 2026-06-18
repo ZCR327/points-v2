@@ -9,7 +9,6 @@ import pytest
 from points_v2.core.exceptions import (
     AuthError,
     InvalidCredentialsError,
-    UserNotFoundError,
 )
 from points_v2.data.audit_repo import AuditRepository
 from points_v2.data.user_repo import UserRepository

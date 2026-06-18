@@ -2,15 +2,13 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
-
 import pytest
 
 from points_v2.core.exceptions import DuplicateUserError, UserNotFoundError
 from points_v2.data import AuditRepository, NotificationRepository
 from points_v2.data.user_repo import UserRepository
 from points_v2.domain.audit import AuditFilter
-from points_v2.domain.enums import AuditAction, NotificationLevel, UserRole
+from points_v2.domain.enums import NotificationLevel, UserRole
 from points_v2.domain.user import UserCreate, UserUpdate
 from points_v2.services.audit_service import AuditService
 from points_v2.services.notification_service import NotificationService
