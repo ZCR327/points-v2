@@ -149,3 +149,12 @@ filterwarnings = [
     "ignore:Using .httpx. with .starlette.testclient:UserWarning",
 ]
 pythonpath = ["src"]
+
+[tool.coverage.run]
+# 这些模块在 Linux CI 上无法跑（PySide6 装包 + display 依赖），本地装 [gui]
+# 后单独跑。omitting 避免把整体覆盖率拖到 60% 以下。
+omit = [
+    "src/points_v2/__main__.py",
+    "src/points_v2/ui/*",
+    "src/points_v2/plugins/*",
+]
