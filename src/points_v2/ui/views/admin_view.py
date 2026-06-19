@@ -313,9 +313,12 @@ class AdminView(QWidget):
         info_layout.addRow("版本:", QLabel(__version__))
         info_layout.addRow("数据目录:", QLabel(str(_data_dir())))
         info_layout.addRow("日志目录:", QLabel(str(_logs_dir())))
-        info_layout.addRow("当前时间:", QLabel(datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")))
-        info_layout.addRow("当前用户:",
-                           QLabel(self._current_user.display_name if self._current_user else "未登录"))
+        info_layout.addRow(
+            "当前时间:", QLabel(datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"))
+        )
+        info_layout.addRow(
+            "当前用户:", QLabel(self._current_user.display_name if self._current_user else "未登录")
+        )
         layout.addWidget(info_box)
 
         # 占位：未来扩展

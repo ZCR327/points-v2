@@ -59,8 +59,12 @@ def test_points_adjustment_required_fields() -> None:
 def test_user_ranking_validates_rank_and_total() -> None:
     """``UserRanking`` rank >= 1、total_points >= 0。"""
     rank = UserRanking(
-        rank=1, user_id="u1", username="alice", display_name="Alice",
-        total_points=100, period="week",
+        rank=1,
+        user_id="u1",
+        username="alice",
+        display_name="Alice",
+        total_points=100,
+        period="week",
     )
     assert rank.rank == 1
     assert rank.period == "week"
@@ -75,6 +79,10 @@ def test_user_ranking_validates_rank_and_total() -> None:
         )
     with pytest.raises(ValidationError):
         UserRanking(
-            rank=1, user_id="u1", username="alice", display_name="Alice",
-            total_points=-1, period="all",
+            rank=1,
+            user_id="u1",
+            username="alice",
+            display_name="Alice",
+            total_points=-1,
+            period="all",
         )

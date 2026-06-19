@@ -86,10 +86,16 @@ def test_audit_repo_insert_and_query(tmp_data_dir) -> None:
     """``insert`` + ``query`` 基本流程。"""
     repo = AuditRepository()
     log1 = AuditLog(
-        user_id="u1", action=AuditAction.USER_LOGIN, resource="u1", details={"ip": "1.1.1.1"},
+        user_id="u1",
+        action=AuditAction.USER_LOGIN,
+        resource="u1",
+        details={"ip": "1.1.1.1"},
     )
     log2 = AuditLog(
-        user_id="u2", action=AuditAction.POINTS_ADD, resource="u2", details={"amount": 5},
+        user_id="u2",
+        action=AuditAction.POINTS_ADD,
+        resource="u2",
+        details={"amount": 5},
     )
     repo.insert(log1)
     repo.insert(log2)
@@ -133,13 +139,22 @@ def test_notification_repo_insert_and_list_for_user(tmp_data_dir) -> None:
     """``list_for_user`` 收件人为该用户 + (可选) 全局通知。"""
     repo = NotificationRepository()
     n_personal = Notification(
-        user_id="u1", level=NotificationLevel.INFO, title="hi", content="c",
+        user_id="u1",
+        level=NotificationLevel.INFO,
+        title="hi",
+        content="c",
     )
     n_global = Notification(
-        user_id=None, level=NotificationLevel.WARNING, title="warn", content="w",
+        user_id=None,
+        level=NotificationLevel.WARNING,
+        title="warn",
+        content="w",
     )
     n_other = Notification(
-        user_id="u2", level=NotificationLevel.ERROR, title="err", content="e",
+        user_id="u2",
+        level=NotificationLevel.ERROR,
+        title="err",
+        content="e",
     )
     repo.insert(n_personal)
     repo.insert(n_global)

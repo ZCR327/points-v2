@@ -223,7 +223,11 @@ class UserView(QWidget):
         keyword = self._search.text().strip().lower()
         self._list.clear()
         for u in users:
-            if keyword and keyword not in u.username.lower() and keyword not in u.display_name.lower():
+            if (
+                keyword
+                and keyword not in u.username.lower()
+                and keyword not in u.display_name.lower()
+            ):
                 continue
             label = f"{u.display_name}（{u.username}）\n   {u.role.value} · {u.points} 分"
             if u.is_locked:
@@ -237,7 +241,9 @@ class UserView(QWidget):
     def _on_search(self, _text: str) -> None:
         self._render_list(self._users)
 
-    def _on_select(self, current: QListWidgetItem | None, _previous: QListWidgetItem | None) -> None:
+    def _on_select(
+        self, current: QListWidgetItem | None, _previous: QListWidgetItem | None
+    ) -> None:
         if current is None:
             self._detail_title.setText("选择一个用户查看详情")
             self._detail.setText("（无）")
@@ -260,9 +266,7 @@ class UserView(QWidget):
         status_bits.append(f"角色: {user.role.value}")
         created = user.created_at.strftime("%Y-%m-%d %H:%M:%S")
         last_login = (
-            user.last_login_at.strftime("%Y-%m-%d %H:%M:%S")
-            if user.last_login_at
-            else "从未登录"
+            user.last_login_at.strftime("%Y-%m-%d %H:%M:%S") if user.last_login_at else "从未登录"
         )
         self._detail.setText(
             f"<b>ID:</b> {user.id}<br/>"
@@ -279,7 +283,9 @@ class UserView(QWidget):
         self._edit_btn.setEnabled(is_admin)
         self._lock_btn.setEnabled(is_admin and not user.is_locked)
         self._unlock_btn.setEnabled(is_admin and user.is_locked)
-        self._delete_btn.setEnabled(is_admin and user.id != (self._current_user.id if self._current_user else None))
+        self._delete_btn.setEnabled(
+            is_admin and user.id != (self._current_user.id if self._current_user else None)
+        )
 
     def _is_admin(self) -> bool:
         if self._current_user is None:

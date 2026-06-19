@@ -50,7 +50,9 @@ class Container:
         if not name or not isinstance(name, str):
             raise ValueError("Container.register: 'name' 必须是非空字符串")
         if not callable(factory):
-            raise TypeError(f"Container.register: 'factory' 必须是可调用对象，got {type(factory).__name__}")
+            raise TypeError(
+                f"Container.register: 'factory' 必须是可调用对象，got {type(factory).__name__}"
+            )
         with self._lock:
             self._factories[name] = factory
 

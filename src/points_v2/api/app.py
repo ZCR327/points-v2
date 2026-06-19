@@ -136,15 +136,18 @@ def main() -> int:
 
     # 初始化 core（路径 + 配置 + 日志）
     from points_v2.core import paths
+
     paths.setup()
     try:
         from points_v2.core import config as _cfg
+
         _cfg.setup()
     except Exception:  # noqa: BLE001
         pass
 
     try:
         from points_v2.core import logging as _log
+
         _log.setup()
     except Exception:  # noqa: BLE001
         pass

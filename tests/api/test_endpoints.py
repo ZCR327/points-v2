@@ -221,12 +221,10 @@ def test_transfer_between_users(client: TestClient) -> None:
     body = r.json()
     assert body["total"] == 2
     # alice 100 → 60，bob 0 → 40
-    alice_now = client.get(
-        f"/api/users/{alice_id}/points", headers=_auth(admin_token)
-    ).json()["points"]
-    bob_now = client.get(
-        f"/api/users/{bob_id}/points", headers=_auth(admin_token)
-    ).json()["points"]
+    alice_now = client.get(f"/api/users/{alice_id}/points", headers=_auth(admin_token)).json()[
+        "points"
+    ]
+    bob_now = client.get(f"/api/users/{bob_id}/points", headers=_auth(admin_token)).json()["points"]
     assert (alice_now, bob_now) == (60, 40)
 
 
@@ -266,9 +264,7 @@ def test_notifications_create_and_list_and_mark_read(client: TestClient) -> None
     assert any(n["id"] == nid and not n["is_read"] for n in items)
 
     # 标记已读
-    r3 = client.post(
-        f"/api/admin/notifications/{nid}/read", headers=_auth(alice_token)
-    )
+    r3 = client.post(f"/api/admin/notifications/{nid}/read", headers=_auth(alice_token))
     assert r3.status_code == 200
 
     # 复查

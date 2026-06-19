@@ -333,6 +333,7 @@ class AuthService:
             with tmp.open("w", encoding="utf-8") as fh:
                 json.dump(self._sessions, fh, ensure_ascii=False, indent=2)
             import os
+
             os.replace(tmp, self._file)
         except OSError:
             # 失败不应阻断业务；下次启动会自动重建
@@ -354,6 +355,7 @@ class AuthService:
             return
         try:
             from points_v2.domain.audit import AuditLog  # noqa: PLC0415
+
             log = AuditLog(
                 user_id=user_id,
                 action=action,

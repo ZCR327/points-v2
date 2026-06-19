@@ -113,9 +113,9 @@ def setup(*, log_dir: Path | None = None) -> None:
         rotation=rotation,
         retention=retention,
         encoding="utf-8",
-        enqueue=True,        # 线程安全
+        enqueue=True,  # 线程安全
         backtrace=True,
-        diagnose=False,      # 生产不要泄露变量值
+        diagnose=False,  # 生产不要泄露变量值
         serialize=True,
     )
 

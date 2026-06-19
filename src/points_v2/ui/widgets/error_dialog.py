@@ -24,9 +24,7 @@ def _format_message(exc: BaseException) -> str:
     if isinstance(exc, PointsV2Error):
         msg = exc.message or str(exc)
         if exc.details:
-            msg += "\n\n详细信息:\n" + "\n".join(
-                f"  • {k}: {v}" for k, v in exc.details.items()
-            )
+            msg += "\n\n详细信息:\n" + "\n".join(f"  • {k}: {v}" for k, v in exc.details.items())
         return msg
     return str(exc) or exc.__class__.__name__
 

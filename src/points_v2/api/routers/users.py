@@ -108,10 +108,14 @@ async def update_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail={"code": "FORBIDDEN", "message": "无权修改其他用户"},
         )
-    if is_self and not is_admin and (
-        payload.role is not None
-        or payload.is_active is not None
-        or payload.is_locked is not None
+    if (
+        is_self
+        and not is_admin
+        and (
+            payload.role is not None
+            or payload.is_active is not None
+            or payload.is_locked is not None
+        )
     ):
         # 普通用户只能改 display_name
         raise HTTPException(

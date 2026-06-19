@@ -88,7 +88,9 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
     if pyside6_available:
         return
 
-    skip_marker = pytest.mark.skip(reason="PySide6 not installed; pip install -e '.[gui]' to enable")
+    skip_marker = pytest.mark.skip(
+        reason="PySide6 not installed; pip install -e '.[gui]' to enable"
+    )
     for item in items:
         # 用 nodeid 而不是 file path（兼容 symlink / absolute path）
         if "tests/ui" in str(item.fspath).replace("\\", "/"):

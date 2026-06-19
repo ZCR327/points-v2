@@ -54,11 +54,13 @@ def _bootstrap(no_config: bool = False) -> None:
     if not no_config:
         try:
             from points_v2.core import config
+
             config.setup()
         except Exception as exc:  # noqa: BLE001 - 排错模式允许配置缺失
             print(f"[points_v2] 配置加载失败：{exc}", file=sys.stderr)
     try:
         from points_v2.core import logging
+
         logging.setup()
     except Exception as exc:  # noqa: BLE001
         print(f"[points_v2] 日志初始化失败：{exc}", file=sys.stderr)

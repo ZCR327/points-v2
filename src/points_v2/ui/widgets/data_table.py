@@ -106,7 +106,9 @@ class BaseTableModel(QAbstractTableModel):
             return None
         return None
 
-    def headerData(self, section: int, orientation: Qt.Orientation, role: int = Qt.DisplayRole) -> Any:  # noqa: N802
+    def headerData(  # noqa: N802 (Qt parent uses camelCase)
+        self, section: int, orientation: Qt.Orientation, role: int = Qt.DisplayRole
+    ) -> Any:  # noqa: N802
         if role != Qt.DisplayRole:
             return None
         if orientation == Qt.Horizontal and 0 <= section < len(self.COLUMNS):

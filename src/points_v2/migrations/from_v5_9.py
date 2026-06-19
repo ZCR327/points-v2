@@ -170,7 +170,7 @@ _OPERATION_MAP: dict[str, OperationType] = {
     "adjust": OperationType.ADJUST,
     "refund": OperationType.REFUND,
     # v5.9 特有
-    "task": OperationType.EARN,    # v5.9 "task" 视为回收获得
+    "task": OperationType.EARN,  # v5.9 "task" 视为回收获得
     "bonus": OperationType.EARN,
     "purchase": OperationType.SPEND,
     "redeem": OperationType.SPEND,
@@ -299,9 +299,7 @@ def _migrate_users(
         seen.add(username)
         if not _is_valid_username(username):
             report.users_failed += 1
-            report.errors.append(
-                f"username 包含非法字符（v2 不接受）: {username!r}"
-            )
+            report.errors.append(f"username 包含非法字符（v2 不接受）: {username!r}")
             continue
         try:
             user = _convert_user(username, raw, now=now, report=report)
@@ -543,6 +541,7 @@ def _latest_balances(records: list[dict[str, Any]]) -> dict[str, int]:
         if cur is None or ts >= cur[0]:
             out[uid] = (ts, int(r.get("balance_after", 0) or 0))
     return {uid: bal for uid, (_ts, bal) in out.items()}
+
 
 def _write_json(path: Path, data: Any) -> None:
     """原子写：tmp → rename。"""

@@ -112,7 +112,8 @@ def test_reload_forces_reread(tmp_data_dir: Path) -> None:
     repo.insert(_Mini(id="a", value=1))
     # 手动改文件
     (tmp_data_dir / "mini.json").write_text(
-        json.dumps([{"id": "b", "value": 2}]), encoding="utf-8",
+        json.dumps([{"id": "b", "value": 2}]),
+        encoding="utf-8",
     )
     # 普通 get 仍是缓存的 a
     assert repo.get("a") is not None
@@ -133,6 +134,7 @@ def test_load_is_idempotent(tmp_data_dir: Path) -> None:
 
 def test_base_repo_requires_filename() -> None:
     """``JsonRepository`` 子类未指定 ``_FILENAME`` 时实例化抛 :class:`StorageError`。"""
+
     class _BadRepo(JsonRepository[_Mini]):
         # 故意不覆盖 _FILENAME
         def _pk(self, obj: _Mini) -> str:  # pragma: no cover

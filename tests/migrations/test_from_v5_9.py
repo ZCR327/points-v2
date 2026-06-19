@@ -107,9 +107,7 @@ def test_migrate_cjk_user_accepted(v59_dir: Path, v2_dir: Path) -> None:
 
     report = run_migration(v59_dir, v2_dir)
 
-    assert report.users_imported == 1, (
-        f"赵昶 should be importable, errors: {report.errors}"
-    )
+    assert report.users_imported == 1, f"赵昶 should be importable, errors: {report.errors}"
     assert report.users_failed == 0
 
     users = json.loads((v2_dir / "users.json").read_text(encoding="utf-8"))
@@ -273,7 +271,9 @@ def test_invalid_username_recorded_as_failure(v59_dir: Path, v2_dir: Path) -> No
         {
             "alice": _ascii_user("alice"),
             "bad name": _ascii_user("bad name"),  # 包含空格
-            "tab\\there": _ascii_user("tab\\there"),  # 字面反斜杠（写入 JSON 后 Python repr 会再加 1 个 \）
+            "tab\\there": _ascii_user(
+                "tab\\there"
+            ),  # 字面反斜杠（写入 JSON 后 Python repr 会再加 1 个 \）
         },
     )
     _write_history(v59_dir, [])
@@ -374,5 +374,8 @@ def test_role_mapping(v59_dir: Path, v2_dir: Path) -> None:
     report = run_migration(v59_dir, v2_dir)
     assert report.users_imported == 3
 
-    users = {u["username"]: u["role"] for u in json.loads((v2_dir / "users.json").read_text(encoding="utf-8"))}
+    users = {
+        u["username"]: u["role"]
+        for u in json.loads((v2_dir / "users.json").read_text(encoding="utf-8"))
+    }
     assert users == {"boss": "super_admin", "mgr": "admin", "alice": "user"}

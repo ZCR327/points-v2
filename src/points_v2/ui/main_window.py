@@ -64,7 +64,7 @@ class MainWindow(QMainWindow):
         self._services = services
         self._log = get_logger("system")
         self._current_user: User | None = None
-        self._threadpool = getattr(services, 'threadpool', None)
+        self._threadpool = getattr(services, "threadpool", None)
 
         self.setWindowTitle("智能回收社 积分系统 v2")
         self.resize(1200, 800)
@@ -145,9 +145,9 @@ class MainWindow(QMainWindow):
         self._user_view = UserView(services=self._services)
         self._admin_view = AdminView(services=self._services)
         self._inner_stack.addWidget(self._dashboard_view)  # 0
-        self._inner_stack.addWidget(self._points_view)     # 1
-        self._inner_stack.addWidget(self._user_view)        # 2
-        self._inner_stack.addWidget(self._admin_view)       # 3
+        self._inner_stack.addWidget(self._points_view)  # 1
+        self._inner_stack.addWidget(self._user_view)  # 2
+        self._inner_stack.addWidget(self._admin_view)  # 3
         middle.addWidget(self._inner_stack, 1)
 
         outer.addLayout(middle, 1)

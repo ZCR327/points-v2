@@ -57,11 +57,7 @@ def _deep_merge(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any
     """递归合并 dict；``override`` 优先。**不修改入参**。"""
     result = copy.deepcopy(base)
     for key, value in override.items():
-        if (
-            key in result
-            and isinstance(result[key], dict)
-            and isinstance(value, dict)
-        ):
+        if key in result and isinstance(result[key], dict) and isinstance(value, dict):
             result[key] = _deep_merge(result[key], value)
         else:
             result[key] = copy.deepcopy(value)
@@ -96,7 +92,7 @@ def _apply_env_overrides(cfg: dict[str, Any]) -> dict[str, Any]:
     for raw_key, raw_value in os.environ.items():
         if not raw_key.startswith(ENV_PREFIX):
             continue
-        key_path = raw_key[len(ENV_PREFIX):].lower().split(ENV_DELIMITER.lower())
+        key_path = raw_key[len(ENV_PREFIX) :].lower().split(ENV_DELIMITER.lower())
         if not key_path or not all(key_path):
             continue
         _set_nested(result, key_path, _coerce_env_value(raw_value))
@@ -174,8 +170,10 @@ def setup(*, config_dir: Path | None = None, env: str | None = None) -> dict[str
 def _load_and_merge(config_dir: Path | None) -> dict[str, Any]:
     base_path = (config_dir or paths.config_dir()) / "default.yaml"
     base = _load_yaml(base_path)
-    env_path = _resolve_env_file() if config_dir is None else config_dir / (
-        f"{os.environ.get(_ENV_KEY, DEFAULT_ENV).lower()}.yaml"
+    env_path = (
+        _resolve_env_file()
+        if config_dir is None
+        else config_dir / (f"{os.environ.get(_ENV_KEY, DEFAULT_ENV).lower()}.yaml")
     )
     env_overlay = _load_yaml(env_path)
     merged = _deep_merge(base, env_overlay)

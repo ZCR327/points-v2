@@ -37,10 +37,7 @@ class UserRepository(JsonRepository[User]):
     # ------------------------------------------------------------------ 业务
     def is_username_taken(self, username: str, *, exclude_id: str | None = None) -> bool:
         """``True`` 当 username 已存在。可选地排除一个 user id（更新场景）。"""
-        return any(
-            user.username == username and user.id != exclude_id
-            for user in self.all()
-        )
+        return any(user.username == username and user.id != exclude_id for user in self.all())
 
     def update_points(self, user_id: str, new_balance: int) -> User:
         """原子更新积分余额；找不到抛 :class:`KeyError`。"""

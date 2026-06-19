@@ -44,8 +44,7 @@ class _StatCard(QFrame):
     ) -> None:
         super().__init__(parent)
         self.setStyleSheet(
-            f"QFrame {{ background: #fff; border-left: 4px solid {accent};"
-            f"  border-radius: 4px; }}"
+            f"QFrame {{ background: #fff; border-left: 4px solid {accent};  border-radius: 4px; }}"
         )
         self.setFixedHeight(100)
         layout = QVBoxLayout(self)
