@@ -46,10 +46,10 @@ def test_user_create_rejects_short_username(tmp_data_dir) -> None:
     """Service 必须自己守住长度下限 — 越过 Pydantic 也能拒（防御性深度）"""
     svc, _ = _build_user_svc(tmp_data_dir)
     with pytest.raises(ValueError, match="长度"):
-        # 绕过 Pydantic 校验,验证 service 层显式防御
+        # 1 字符用户名应被 service 层显式防御拒掉（min_length=2）
         raw = UserCreate.model_construct(
-            username="ab",
-            display_name="AB",
+            username="a",
+            display_name="A",
             password="TestPass123",
         )
         svc.create(raw)

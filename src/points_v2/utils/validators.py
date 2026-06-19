@@ -39,8 +39,10 @@ _overrides: dict[str, int] = {}
 # ---------------------------------------------------------------------------
 # 正则常量（与 domain/user.py 保持一致）
 # ---------------------------------------------------------------------------
-_USERNAME_RE: re.Pattern[str] = re.compile(r"^[A-Za-z0-9_.\-]+$")
-_USERNAME_MIN_DEFAULT: int = 3
+_USERNAME_RE: re.Pattern[str] = re.compile(
+    r"^[A-Za-z0-9_.\-\u4e00-\u9fff\u3400-\u4dbf]+$",
+)
+_USERNAME_MIN_DEFAULT: int = 2
 _USERNAME_MAX: int = 32
 _PASSWORD_MIN_DEFAULT: int = 8
 _PASSWORD_MAX: int = 128

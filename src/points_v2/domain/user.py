@@ -23,11 +23,13 @@ from points_v2.domain.enums import UserRole
 # ---------------------------------------------------------------------------
 # 验证常量
 # ---------------------------------------------------------------------------
-USERNAME_MIN = 3
+USERNAME_MIN = 2
 USERNAME_MAX = 32
 DISPLAY_NAME_MAX = 64
 
-_USERNAME_RE = re.compile(r"^[A-Za-z0-9_.\-]+$")
+_USERNAME_RE = re.compile(
+    r"^[A-Za-z0-9_.\-\u4e00-\u9fff\u3400-\u4dbf]+$",
+)
 
 
 def _utcnow() -> datetime:

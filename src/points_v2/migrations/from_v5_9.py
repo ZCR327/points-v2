@@ -158,7 +158,10 @@ class MigrationReport:
 # ---------------------------------------------------------------------------
 # 工具
 # ---------------------------------------------------------------------------
-_USERNAME_RE = re.compile(r"^[A-Za-z0-9_.\-]+$")
+_USERNAME_RE = re.compile(
+    r"^[A-Za-z0-9_.\-\u4e00-\u9fff\u3400-\u4dbf]+$",
+)
+_USERNAME_MIN = 2  # 与 domain/user.py / utils/validators.py 保持一致
 _OPERATION_MAP: dict[str, OperationType] = {
     "earn": OperationType.EARN,
     "spend": OperationType.SPEND,
@@ -220,6 +223,8 @@ def _gen_temp_password() -> str:
 
 
 def _is_valid_username(name: str) -> bool:
+    if not isinstance(name, str) or not (2 <= len(name) <= 32):
+        return False
     return bool(_USERNAME_RE.match(name))
 
 
@@ -512,6 +517,11 @@ def run_migration(
             users=report.users_imported,
             records=report.records_imported,
         )
+
+    # 5) 写报告（target/migration_report.json — dry-run 也写，方便审计）
+    report_path = target / "migration_report.json"
+    _write_json(report_path, report.to_dict())
+
     return report
 
 
