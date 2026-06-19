@@ -138,5 +138,10 @@ markers = [
 filterwarnings = [
     "error",
     "ignore::DeprecationWarning:pkg_resources.*",
+    # starlette 0.45+ 对 httpx 抛 StarletteDeprecationWarning（旧版本是普通
+    # DeprecationWarning 或 UserWarning），触发 collection 失败。用 message-based
+    # 匹配避免引用 CI 才有、本地不存在的 StarletteDeprecationWarning 类。
+    "ignore:Using .httpx. with .starlette.testclient:DeprecationWarning",
+    "ignore:Using .httpx. with .starlette.testclient:UserWarning",
 ]
 pythonpath = ["src"]
