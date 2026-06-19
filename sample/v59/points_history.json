@@ -1,0 +1,26 @@
+[
+  {
+    "username": "alice",
+    "change": 50,
+    "new_points": 50,
+    "operator": "admin",
+    "operation_type": "task",
+    "timestamp": "2025-03-01 14:00:00"
+  },
+  {
+    "username": "bob",
+    "change": 30,
+    "new_points": 30,
+    "operator": "admin",
+    "operation_type": "task",
+    "timestamp": "2025-03-01 14:01:00"
+  },
+  {
+    "username": "alice",
+    "change": 20,
+    "new_points": 70,
+    "operator": "admin",
+    "operation_type": "task",
+    "timestamp": "2025-03-05 09:15:00"
+  }
+]

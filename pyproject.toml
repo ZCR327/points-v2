@@ -132,6 +132,9 @@ addopts = [
     "--strict-config",
     "--showlocals",
 ]
+markers = [
+    "gui: 需要 PySide6（CI 跳过；本地 pip install -e '.[gui]' 后跑）",
+]
 filterwarnings = [
     "error",
     "ignore::DeprecationWarning:pkg_resources.*",

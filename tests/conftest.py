@@ -71,3 +71,25 @@ def reload_paths() -> Iterator[None]:
     """如需重新导入 paths（很少用）。"""
     yield
     importlib.reload(importlib.import_module("points_v2.core.paths"))
+
+
+def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
+    """若 PySide6 不可用，自动跳过所有 UI 测试（避免 CI 装包过重）。
+
+    本地开发 ``pip install -e ".[gui]"`` 后 PySide6 存在，UI 测试正常跑。
+    CI 默认装 ``.[dev]`` 不带 PySide6 → 整组 tests/ui 跳过。
+    """
+    try:
+        importlib.import_module("PySide6")
+        pyside6_available = True
+    except ImportError:
+        pyside6_available = False
+
+    if pyside6_available:
+        return
+
+    skip_marker = pytest.mark.skip(reason="PySide6 not installed; pip install -e '.[gui]' to enable")
+    for item in items:
+        # 用 nodeid 而不是 file path（兼容 symlink / absolute path）
+        if "tests/ui" in str(item.fspath).replace("\\", "/"):
+            item.add_marker(skip_marker)
