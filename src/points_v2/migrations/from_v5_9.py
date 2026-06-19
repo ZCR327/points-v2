@@ -488,11 +488,14 @@ def run_migration(
     # 4) 写目标
     if not dry_run:
         target.mkdir(parents=True, exist_ok=True)
-        # 4a) users.json：每个 User 设上新的 bcrypt 密码
+        # 4a) users.json：每个 User 设上新的 bcrypt 密码 + 从 records 算最后余额
+        latest_balance = _latest_balances(records)
         for user in users:
             temp_pwd = report.new_passwords.get(user.username, _gen_temp_password())
             user.password_hash = hash_password(temp_pwd)
             report.new_passwords[user.username] = temp_pwd
+            if user.id in latest_balance:
+                user.points = latest_balance[user.id]
         _write_json(target / "users.json", [u.model_dump(mode="json") for u in users])
         _write_json(target / "points.json", records)
         # audit / notifications 给空 list
@@ -511,6 +514,25 @@ def run_migration(
         )
     return report
 
+
+def _latest_balances(records: list[dict[str, Any]]) -> dict[str, int]:
+    """从 records 里算每个 user_id 的最新 balance_after。
+
+    策略：取该用户 `created_at` 最大的那条记录的 `balance_after`。
+    如果该用户没有 record，返回空（保持 user.points 原样）。
+    """
+    if not records:
+        return {}
+    out: dict[str, tuple[str, int]] = {}
+    for r in records:
+        uid = r.get("user_id")
+        if not uid:
+            continue
+        ts = r.get("created_at") or ""
+        cur = out.get(uid)
+        if cur is None or ts >= cur[0]:
+            out[uid] = (ts, int(r.get("balance_after", 0) or 0))
+    return {uid: bal for uid, (_ts, bal) in out.items()}
 
 def _write_json(path: Path, data: Any) -> None:
     """原子写：tmp → rename。"""
