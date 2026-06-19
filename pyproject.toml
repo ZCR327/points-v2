@@ -34,6 +34,10 @@ dependencies = [
     "PyYAML>=6.0",
     "bcrypt>=4.1",
     "python-multipart>=0.0.9",
+    # starlette 0.45+ 在 import 时尝试 `import httpx2 as httpx`（PyPI 上没这包），
+    # 失败后发 StarletteDeprecationWarning 让用户装 httpx2。TestClient 不能用。
+    # 等 starlette 修对 httpx 的 import 行为再放开。
+    "starlette<0.45",
 ]
 
 [project.optional-dependencies]
